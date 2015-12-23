@@ -1,0 +1,1 @@
+Python script/modules that attempt multi-threaded brute-force authentication to a telnet host.  The usernames are taken from a new-line dilimitered text file. Passwords are random strings made up of a combination of the user's choice of upper and lower case letters, numbers, and symbols.
